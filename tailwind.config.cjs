@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   darkMode: ["class", '[data-theme="dark"]'],
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
@@ -48,7 +48,7 @@ export default {
       },
       animation: {
         "fade-up": "fade-up 0.25s ease-out both",
-        spin-slow: "spin 5s linear infinite",
+        "spin-slow": "spin 5s linear infinite",
       },
     },
   },

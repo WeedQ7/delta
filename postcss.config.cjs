@@ -1,4 +1,4 @@
-export default ({}); const _unused = {
+module.exports = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},

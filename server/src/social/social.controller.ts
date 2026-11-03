@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { SocialService } from './social.service';
-import { JwtAuthGuard } from '../common/auth.guard';
+import { JwtAuthGuard, OptionalAuth } from '../common/auth.guard';
 import { CurrentUser } from '../common/current-user.decorator';
 import { CreatePostDto, CreateCommentDto } from '../common/dtos';
 
@@ -28,7 +28,8 @@ export class SocialController {
   comment(@CurrentUser() u: any, @Param('id') id: string, @Body() dto: CreateCommentDto) { return this.social.addComment(u.userId, id, dto.text); }
 
   @Get('posts/:id/comments')
-  comments(@CurrentUser() u: any, @Param('id') id: string) { return this.social.listComments(id, u.userId); }
+  @OptionalAuth()
+  comments(@CurrentUser() u: any, @Param('id') id: string) { return this.social.listComments(id, u?.userId); }
 
   @Get('notifications')
   notifications(@CurrentUser() u: any) { return this.social.notifications(u.userId); }

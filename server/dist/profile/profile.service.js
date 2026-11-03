@@ -65,10 +65,15 @@ let ProfileService = class ProfileService {
     async updateProfile(userId, dto) {
         if (dto.visibility && !['PUBLIC', 'PRIVATE'].includes(dto.visibility))
             throw new common_1.BadRequestException('Некорректная видимость');
-        return this.prisma.userProfile.update({
+        await this.prisma.userProfile.upsert({ where: { userId }, update: {}, create: { userId } });
+        await this.prisma.userProfile.update({
             where: { userId },
             data: { displayName: dto.displayName, bio: dto.bio, visibility: dto.visibility },
         });
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            throw new common_1.NotFoundException('Пользователь не найден');
+        return this.getPublicProfile(user.username, userId);
     }
     async updateSettings(userId, dto) {
         return this.prisma.userSettings.update({ where: { userId }, data: dto });

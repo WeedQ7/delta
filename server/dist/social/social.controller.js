@@ -28,7 +28,7 @@ let SocialController = class SocialController {
     userPosts(u, username) { return this.social.userPosts(username, u.userId); }
     like(u, id) { return this.social.toggleLike(u.userId, id); }
     comment(u, id, dto) { return this.social.addComment(u.userId, id, dto.text); }
-    comments(u, id) { return this.social.listComments(id, u.userId); }
+    comments(u, id) { return this.social.listComments(id, u?.userId); }
     notifications(u) { return this.social.notifications(u.userId); }
     unread(u) { return this.social.unreadCount(u.userId); }
     read(u, ids) { return this.social.markRead(u.userId, ids); }
@@ -85,6 +85,7 @@ __decorate([
 ], SocialController.prototype, "comment", null);
 __decorate([
     (0, common_1.Get)('posts/:id/comments'),
+    (0, auth_guard_1.OptionalAuth)(),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),

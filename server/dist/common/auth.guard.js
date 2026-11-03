@@ -9,9 +9,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JwtAuthGuard = void 0;
+exports.JwtAuthGuard = exports.OptionalAuth = exports.OptionalAuth_KEY = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
+exports.OptionalAuth_KEY = 'delta:optional-auth';
+const OptionalAuth = () => (0, common_1.SetMetadata)(exports.OptionalAuth_KEY, true);
+exports.OptionalAuth = OptionalAuth;
 let JwtAuthGuard = class JwtAuthGuard {
     constructor(jwt) {
         this.jwt = jwt;
@@ -19,8 +22,11 @@ let JwtAuthGuard = class JwtAuthGuard {
     async canActivate(ctx) {
         const req = ctx.switchToHttp().getRequest();
         const auth = req.headers.authorization;
-        if (!auth || !auth.startsWith('Bearer '))
+        if (!auth || !auth.startsWith('Bearer ')) {
+            if (ctx.getHandler()?.[exports.OptionalAuth_KEY])
+                return true;
             throw new common_1.UnauthorizedException('Требуется авторизация');
+        }
         try {
             const payload = await this.jwt.verifyAsync(auth.slice(7));
             req.user = { userId: payload.sub, username: payload.username };

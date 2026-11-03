@@ -1,5 +1,2 @@
-.env
-.env.local
-*.env.*
-tsconfig.tsbuildinfo
-node_modules/
+*.log
+dist/

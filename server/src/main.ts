@@ -23,7 +23,7 @@ async function bootstrap() {
   // static uploads + test audio
   app.use('/uploads', express.static(join(process.cwd(), process.env.UPLOAD_DIR || './uploads')));
   app.use('/audio', express.static(join(process.cwd(), 'public', 'audio')));
-  app.use((_req: any, res: any, next: any) => { if (_req.path === '/' || _req.path === '/api') { res.json({ name: 'DELTA API', status: 'ok' }); return; } next(); });
+  app.use((_req: any, res: any, next: any) => { if (_req.path === '/' || _req.path === '/api') { res.json({ name: 'DELTA API', status: 'ok' }); return; } if (_req.path === '/api/health') { res.json({ status: 'ok', service: 'delta-api', time: new Date().toISOString() }); return; } next(); });
   const port = Number(process.env.PORT) || 3001;
   await app.listen(port);
   console.log(`DELTA API listening on http://localhost:${port}/api`);

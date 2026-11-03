@@ -65,6 +65,9 @@ async function bootstrap() {
     app.use((_req, res, next) => { if (_req.path === '/' || _req.path === '/api') {
         res.json({ name: 'DELTA API', status: 'ok' });
         return;
+    } if (_req.path === '/api/health') {
+        res.json({ status: 'ok', service: 'delta-api', time: new Date().toISOString() });
+        return;
     } next(); });
     const port = Number(process.env.PORT) || 3001;
     await app.listen(port);

@@ -60,8 +60,12 @@ async function bootstrap() {
         }
         next();
     });
-    app.use('/uploads', express.static((0, path_1.join)(process.cwd(), process.env.UPLOAD_DIR || './uploads')));
-    app.use('/audio', express.static((0, path_1.join)(process.cwd(), 'public', 'audio')));
+    const audioDir = (0, path_1.join)(process.cwd(), 'public', 'audio');
+    const uploadsDir = (0, path_1.join)(process.cwd(), process.env.UPLOAD_DIR || './uploads');
+    app.use('/uploads', express.static(uploadsDir));
+    app.use('/audio', express.static(audioDir));
+    app.use('/api/audio', express.static(audioDir));
+    app.use('/api/uploads', express.static(uploadsDir));
     app.use((_req, res, next) => { if (_req.path === '/' || _req.path === '/api') {
         res.json({ name: 'DELTA API', status: 'ok' });
         return;

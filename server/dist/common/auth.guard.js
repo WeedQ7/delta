@@ -22,8 +22,9 @@ let JwtAuthGuard = class JwtAuthGuard {
     async canActivate(ctx) {
         const req = ctx.switchToHttp().getRequest();
         const auth = req.headers.authorization;
+        const optional = !!ctx.getHandler()?.[exports.OptionalAuth_KEY];
         if (!auth || !auth.startsWith('Bearer ')) {
-            if (ctx.getHandler()?.[exports.OptionalAuth_KEY])
+            if (optional)
                 return true;
             throw new common_1.UnauthorizedException('Требуется авторизация');
         }
@@ -32,7 +33,9 @@ let JwtAuthGuard = class JwtAuthGuard {
             req.user = { userId: payload.sub, username: payload.username };
             return true;
         }
-        catch {
+        catch (e) {
+            if (optional)
+                return true;
             throw new common_1.UnauthorizedException('Сессия истекла, войдите заново');
         }
     }

@@ -48,6 +48,15 @@ let SocialService = class SocialService {
         return { ok: true };
     }
     async feed(userId, cursor, limit = 20) {
+        if (!userId) {
+            const privateIds = (await this.prisma.userSettings.findMany({ where: { privateProfile: true }, select: { userId: true } })).map((x) => x.userId);
+            const where = { deletedAt: null, authorId: { notIn: privateIds } };
+            if (cursor)
+                where.createdAt = { lt: new Date(cursor) };
+            const posts = await this.prisma.post.findMany({ where, orderBy: { createdAt: 'desc' }, take: limit + 1, include: this.postInclude });
+            const hasMore = posts.length > limit;
+            return { items: posts.slice(0, limit), nextCursor: hasMore ? posts[limit - 1].createdAt.toISOString() : null };
+        }
         const followeeIds = (await this.prisma.follow.findMany({ where: { followerId: userId }, select: { followeeId: true } })).map((f) => f.followeeId);
         const blockedByMe = (await this.prisma.block.findMany({ where: { blockerId: userId }, select: { blockedId: true } })).map((b) => b.blockedId);
         const blockedMe = (await this.prisma.block.findMany({ where: { blockedId: userId }, select: { blockerId: true } })).map((b) => b.blockerId);
@@ -62,7 +71,7 @@ let SocialService = class SocialService {
             where.createdAt = { lt: new Date(cursor) };
         const posts = await this.prisma.post.findMany({ where, orderBy: { createdAt: 'desc' }, take: limit + 1, include: this.postInclude });
         const hasMore = posts.length > limit;
-        const items = posts.slice(0, limit).map((p) => ({ ...p, likedByMe: p.likes.some((l) => l.userId === userId), likesCount: p.likes.length }));
+        const items = posts.slice(0, limit).map((p) => ({ ...p, likedByMe: userId ? p.likes.some((l) => l.userId === userId) : false, likesCount: p.likes.length }));
         return { items, nextCursor: hasMore && items.length ? items[items.length - 1].createdAt.toISOString() : null };
     }
     async userPosts(username, viewerId, limit = 30) {

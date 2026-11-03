@@ -53,6 +53,7 @@ __decorate([
 ], ProfileController.prototype, "search", null);
 __decorate([
     (0, common_1.Get)('users/:username'),
+    (0, auth_guard_1.OptionalAuth)(),
     __param(0, (0, common_1.Param)('username')),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
@@ -61,6 +62,7 @@ __decorate([
 ], ProfileController.prototype, "get", null);
 __decorate([
     (0, common_1.Get)('users/:username/followers'),
+    (0, auth_guard_1.OptionalAuth)(),
     __param(0, (0, common_1.Param)('username')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -68,6 +70,7 @@ __decorate([
 ], ProfileController.prototype, "followers", null);
 __decorate([
     (0, common_1.Get)('users/:username/following'),
+    (0, auth_guard_1.OptionalAuth)(),
     __param(0, (0, common_1.Param)('username')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

@@ -24,8 +24,8 @@ let SocialController = class SocialController {
     }
     create(u, dto) { return this.social.createPost(u.userId, dto.text, dto.trackId); }
     del(u, id) { return this.social.deletePost(u.userId, id); }
-    feed(u, cursor) { return this.social.feed(u.userId, cursor); }
-    userPosts(u, username) { return this.social.userPosts(username, u.userId); }
+    feed(u, cursor) { return this.social.feed(u?.userId, cursor); }
+    userPosts(u, username) { return this.social.userPosts(username, u?.userId); }
     like(u, id) { return this.social.toggleLike(u.userId, id); }
     comment(u, id, dto) { return this.social.addComment(u.userId, id, dto.text); }
     comments(u, id) { return this.social.listComments(id, u?.userId); }
@@ -52,6 +52,7 @@ __decorate([
 ], SocialController.prototype, "del", null);
 __decorate([
     (0, common_1.Get)('feed'),
+    (0, auth_guard_1.OptionalAuth)(),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Query)('cursor')),
     __metadata("design:type", Function),
@@ -60,6 +61,7 @@ __decorate([
 ], SocialController.prototype, "feed", null);
 __decorate([
     (0, common_1.Get)('users/:username/posts'),
+    (0, auth_guard_1.OptionalAuth)(),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('username')),
     __metadata("design:type", Function),

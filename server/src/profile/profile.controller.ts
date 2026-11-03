@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfileService } from './profile.service';
-import { JwtAuthGuard } from '../common/auth.guard';
+import { JwtAuthGuard, OptionalAuth } from '../common/auth.guard';
 import { CurrentUser } from '../common/current-user.decorator';
 import { UpdateProfileDto, UpdateSettingsDto, CreateReportDto } from '../common/dtos';
 
@@ -14,14 +14,17 @@ export class ProfileController {
   search(@Query('q') q = '') { return this.profiles.searchUsers(q); }
 
   @Get('users/:username')
+  @OptionalAuth()
   get(@Param('username') username: string, @CurrentUser() u: any) {
     return this.profiles.getPublicProfile(username, u?.userId);
   }
 
   @Get('users/:username/followers')
+  @OptionalAuth()
   followers(@Param('username') username: string) { return this.profiles.listFollowers(username); }
 
   @Get('users/:username/following')
+  @OptionalAuth()
   following(@Param('username') username: string) { return this.profiles.listFollowing(username); }
 
   @Post('users/:username/follow')

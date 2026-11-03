@@ -16,10 +16,12 @@ export class SocialController {
   del(@CurrentUser() u: any, @Param('id') id: string) { return this.social.deletePost(u.userId, id); }
 
   @Get('feed')
-  feed(@CurrentUser() u: any, @Query('cursor') cursor?: string) { return this.social.feed(u.userId, cursor); }
+  @OptionalAuth()
+  feed(@CurrentUser() u: any, @Query('cursor') cursor?: string) { return this.social.feed(u?.userId, cursor); }
 
   @Get('users/:username/posts')
-  userPosts(@CurrentUser() u: any, @Param('username') username: string) { return this.social.userPosts(username, u.userId); }
+  @OptionalAuth()
+  userPosts(@CurrentUser() u: any, @Param('username') username: string) { return this.social.userPosts(username, u?.userId); }
 
   @Post('posts/:id/like')
   like(@CurrentUser() u: any, @Param('id') id: string) { return this.social.toggleLike(u.userId, id); }

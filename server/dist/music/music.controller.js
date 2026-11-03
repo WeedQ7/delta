@@ -22,7 +22,11 @@ let MusicController = class MusicController {
     constructor(music) {
         this.music = music;
     }
-    search(q = '', genre) { return this.music.search(q, genre); }
+    search(q, genre) {
+        if (!q || !q.trim())
+            throw new common_1.BadRequestException('Укажите поисковый запрос "q"');
+        return this.music.search(q, genre);
+    }
     genres() { return this.music.genres(); }
     trending() { return this.music.trending(); }
     play(u, id) { return this.music.recordPlay(u.userId, id); }
@@ -45,7 +49,7 @@ __decorate([
     __param(0, (0, common_1.Query)('q')),
     __param(1, (0, common_1.Query)('genre')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], MusicController.prototype, "search", null);
 __decorate([
@@ -62,6 +66,7 @@ __decorate([
 ], MusicController.prototype, "trending", null);
 __decorate([
     (0, common_1.Post)('tracks/:id/play'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -70,6 +75,7 @@ __decorate([
 ], MusicController.prototype, "play", null);
 __decorate([
     (0, common_1.Get)('me/recent'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -77,6 +83,7 @@ __decorate([
 ], MusicController.prototype, "recent", null);
 __decorate([
     (0, common_1.Get)('me/recommendations'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -84,6 +91,7 @@ __decorate([
 ], MusicController.prototype, "recs", null);
 __decorate([
     (0, common_1.Get)('me/favorites'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -91,6 +99,7 @@ __decorate([
 ], MusicController.prototype, "favorites", null);
 __decorate([
     (0, common_1.Post)('me/favorites/:trackId'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('trackId')),
     __metadata("design:type", Function),
@@ -99,6 +108,7 @@ __decorate([
 ], MusicController.prototype, "toggleFav", null);
 __decorate([
     (0, common_1.Get)('me/history'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -106,6 +116,7 @@ __decorate([
 ], MusicController.prototype, "history", null);
 __decorate([
     (0, common_1.Get)('playlists'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -113,6 +124,7 @@ __decorate([
 ], MusicController.prototype, "playlists", null);
 __decorate([
     (0, common_1.Post)('playlists'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -121,6 +133,7 @@ __decorate([
 ], MusicController.prototype, "createPl", null);
 __decorate([
     (0, common_1.Get)('playlists/:id'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -129,6 +142,7 @@ __decorate([
 ], MusicController.prototype, "getPl", null);
 __decorate([
     (0, common_1.Patch)('playlists/:id'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
@@ -138,6 +152,7 @@ __decorate([
 ], MusicController.prototype, "patchPl", null);
 __decorate([
     (0, common_1.Delete)('playlists/:id'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -146,6 +161,7 @@ __decorate([
 ], MusicController.prototype, "delPl", null);
 __decorate([
     (0, common_1.Post)('playlists/:id/tracks'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
@@ -155,6 +171,7 @@ __decorate([
 ], MusicController.prototype, "addTrack", null);
 __decorate([
     (0, common_1.Delete)('playlists/:id/tracks/:trackId'),
+    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Param)('trackId')),
@@ -163,7 +180,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MusicController.prototype, "removeTrack", null);
 exports.MusicController = MusicController = __decorate([
-    (0, common_1.UseGuards)(auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [music_service_1.MusicService])
 ], MusicController);

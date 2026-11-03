@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="DELTA — современная музыкальная платформа" />
+    <title>DELTA — Музыка</title>
+    <script>
+      // Prevent theme flash: apply saved theme before React mounts
+      try {
+        var s = JSON.parse(localStorage.getItem("delta-settings") || "{}");
+        var t = (s.state && s.state.theme) || "dark";
+        if (t === "system") {
+          t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        document.documentElement.dataset.theme = t;
+      } catch (e) {
+        document.documentElement.dataset.theme = "dark";
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-ClKxw70L.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CPYk3A9v.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

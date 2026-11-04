@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../stores/auth";
 import { profileApi } from "../lib/api";
 import { Avatar, Spinner, toast } from "../components/ui";
@@ -8,6 +9,8 @@ export function ProfilePage() {
   const user = useAuth((s) => s.user);
   const setUser = useAuth((s) => s.setUser);
   const status = useAuth((s) => s.status);
+  const logout = useAuth((s) => s.logout);
+  const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [visibility, setVisibility] = useState("PUBLIC");
@@ -106,6 +109,16 @@ export function ProfilePage() {
         <button className="btn-primary" disabled={saving}>
           {saving ? "Сохранение…" : "Сохранить"}
         </button>
+
+        <div className="pt-2 border-t border-line">
+          <button
+            type="button"
+            onClick={async () => { await logout(); navigate("/login"); }}
+            className="btn w-full justify-center text-danger hover:bg-danger/10"
+          >
+            Выйти из аккаунта
+          </button>
+        </div>
       </form>
     </div>
   );

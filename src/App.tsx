@@ -17,6 +17,9 @@ import { ProfilePage } from "./pages/Profile";
 import { SettingsPage } from "./pages/Settings";
 import { LoginPage } from "./pages/Login";
 import { RegisterPage } from "./pages/Register";
+import { FeedPage } from "./pages/Feed";
+import { NotificationsPage } from "./pages/Notifications";
+import { UserProfilePage } from "./pages/UserProfile";
 import { NotFoundPage } from "./pages/NotFound";
 
 /** Protected route: remembers where the user came from and returns after login. */
@@ -69,6 +72,9 @@ export default function App() {
           <Route path="playlists" element={<RequireAuth><PlaylistsPage /></RequireAuth>} />
           <Route path="playlists/:id" element={<RequireAuth><PlaylistDetailPage /></RequireAuth>} />
           <Route path="profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+          <Route path="feed" element={<RequireAuth><FeedPage /></RequireAuth>} />
+          <Route path="notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+          <Route path="u/:username" element={<UserProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

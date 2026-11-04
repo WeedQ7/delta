@@ -13,6 +13,8 @@ import {
   IconCrown,
   IconCoin,
   IconStore,
+  IconBell,
+  IconGlobe,
 } from "./Icons";
 
 const NAV = [
@@ -21,6 +23,8 @@ const NAV = [
   { to: "/library", label: "Моя библиотека", icon: IconLibrary },
   { to: "/playlists", label: "Плейлисты", icon: IconPlaylist },
   { to: "/favorites", label: "Избранное", icon: IconHeart },
+  { to: "/feed", label: "Лента", icon: IconGlobe },
+  { to: "/notifications", label: "Уведомления", icon: IconBell },
 ];
 
 const NAV_BOTTOM = [

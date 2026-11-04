@@ -224,7 +224,11 @@ import type { Track } from "../types";
 /** Map an API track to the frontend Track shape used by the player. */
 export function toFrontTrack(t: ApiTrack): Track {
   let seed = 7;
-  for (const ch of t.coverSeed || t.title) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  // Defensive: API may return a track without coverSeed AND without title
+  // (partial/legacy rows). Iterating undefined throws
+  // "undefined is not iterable" — guard with an empty string.
+  const seedSrc = String(t.coverSeed ?? t.title ?? "");
+  for (const ch of seedSrc) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
   return {
     id: t.id,
     title: t.title,

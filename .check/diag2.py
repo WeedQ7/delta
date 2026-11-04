@@ -1,50 +1,53 @@
-import asyncio, json
+import asyncio, json, time
 from playwright.async_api import async_playwright
 
 async def main():
-    email="diag%s@delta.test" % (int(asyncio.get_event_loop().time())%100000)
-    uname=(email.split('@')[0]); pw="TestPass123!"
     async with async_playwright() as p:
         b = await p.chromium.launch(executable_path="/root/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome", headless=True, args=["--no-sandbox"])
-        pg = await b.new_page(viewport={"width":1280,"height":900})
-        errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)[:200]))
-        await pg.goto("http://localhost:5173/#/register"); await pg.wait_for_timeout(800)
-        await pg.locator('input[autocomplete="email"]').fill(email)
-        await pg.locator('input[placeholder*="nova_wave"], input[autocomplete="username"]').first.fill(uname)
-        dn = pg.locator('form input:not([type="email"]):not([type="password"])')
-        if await dn.count()>=2: await dn.nth(1).fill("Diag User")
-        await pg.locator('input[autocomplete="new-password"]').first.fill(pw)
-        await pg.locator('input[autocomplete="new-password"]').nth(1).fill(pw)
-        await pg.click('button[type="submit"]'); await pg.wait_for_timeout(2000)
-        print("URL after register:", pg.url)
-        await pg.goto("http://localhost:5173/#/search"); await pg.wait_for_timeout(1000)
-        await pg.locator('input[placeholder*="Треки"]').first.fill("neon")
+        pg = await b.new_page(viewport={"width":1280,"height":800})
+        errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
+        ts=str(int(time.time()))
+        await pg.goto("http://localhost:5173/#/register"); await pg.wait_for_timeout(900)
+        for sel,val in [("input[name='email']",f"dg{ts}@delta.test"),("input[name='username']",f"dg{ts}"),("input[name='password']","Delta12345!"),("input[name='name']","Diag")]:
+            try: await pg.fill(sel,val)
+            except Exception as e: print("fillfail",sel)
+        await pg.locator("button[type=submit]").first.click(force=True)
+        await pg.wait_for_timeout(2500)
+        st=lambda: pg.evaluate("()=>JSON.parse(JSON.stringify(window.__deltaPlayer.getState(),(k,v)=>typeof v==='function'?undefined:v))")
+        await pg.goto("http://localhost:5173/#/search"); await pg.wait_for_timeout(1200)
+        inp=pg.locator("input").filter(has_not=pg.locator("x")) # fallback below
+        try:
+            await pg.fill("main input, header input", "neon")
+        except Exception:
+            await pg.evaluate("""()=>{const i=document.querySelector('input'); const s=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set; s.call(i,'neon'); i.dispatchEvent(new Event('input',{bubbles:true}));}""")
         await pg.wait_for_timeout(1500)
-        row = pg.locator('div.group:has-text("Neon Drive")').first
-        print("row count:", await row.count())
-        qbtns = pg.locator('div.group button[aria-label="Добавить в очередь"]')
-        print("queue buttons:", await qbtns.count())
-        for i in range(await qbtns.count()):
-            txt = await qbtns.nth(i).evaluate("el => (el.closest('div.group')?.textContent||'').slice(0,60)")
-            print(f"  btn{i} rowtext: {txt!r}")
-        # click the first queue button directly
-        if await qbtns.count():
-            await qbtns.first.click(); await pg.wait_for_timeout(500)
-            st = await pg.evaluate("()=>window.__deltaPlayer.getState()")
-            print("after direct queue click: queue len =", len(st["queue"]), [t["title"] for t in st["queue"]])
-        # play neon
-        await row.locator('button[aria-label^="Играть"]').first.click()
+        r=await pg.evaluate("""()=>{
+          const rows=Array.from(document.querySelectorAll('div.group'));
+          const row=rows.find(r=>r.textContent.includes('Neon Drive'));
+          if(!row) return 'NO ROW';
+          const btns=Array.from(row.querySelectorAll('button')).map(b=>({al:b.getAttribute('aria-label'),disabled:b.disabled}));
+          const play=Array.from(row.querySelectorAll('button')).find(b=>(b.getAttribute('aria-label')||'').startsWith('Играть'));
+          if(!play) return JSON.stringify(btns);
+          play.click();
+          return 'CLICKED '+ (play.disabled?'DIS':'OK');
+        }""")
+        print("play click:", r)
         await pg.wait_for_timeout(2000)
-        st = await pg.evaluate("()=>window.__deltaPlayer.getState()")
-        print("playing:", st["isPlaying"], "t:", st["currentTime"], "queue:", len(st["queue"]))
-        # dump ALL buttons with aria-label and their container class chain
-        info = await pg.evaluate("""()=>{const out=[];for(const b of document.querySelectorAll('button[aria-label]')){
-          const al=b.getAttribute('aria-label'); if(/Пауза|Воспроизвести|Следующий/.test(al)){
-            let el=b, chain=[]; while(el&&chain.length<4){chain.push((el.className||'').toString().slice(0,60)); el=el.parentElement;}
-            const r=b.getBoundingClientRect(); out.push({al, rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)], chain});}}
-          return out;}""")
-        print(json.dumps(info, ensure_ascii=False, indent=1))
-        print("JS ERRORS:", errs[:4])
-        await pg.close(); await b.close()
-
+        s=await st()
+        print("after play:", s.get("isPlaying"), round(s.get("currentTime") or 0,2), (s.get("current") or {}).get("title"), "qLen", len(s.get("queue",[])), "qIdx", s.get("queueIndex"))
+        # pause via store call directly through the real button DOM click
+        pr=await pg.evaluate("""()=>{const b=Array.from(document.querySelectorAll('button[aria-label]')).find(x=>x.getAttribute('aria-label')==='Пауза'); if(!b) return 'NO BTN'; b.click(); return 'CLICKED';}""")
+        print("pause:", pr)
+        await pg.wait_for_timeout(900)
+        s=await st(); print("after pause:", s.get("isPlaying"), round(s.get("currentTime") or 0,2))
+        await pg.wait_for_timeout(1000)
+        s=await st(); print("frozen check:", s.get("isPlaying"), round(s.get("currentTime") or 0,2))
+        nr=await pg.evaluate("""()=>{const b=Array.from(document.querySelectorAll('button[aria-label]')).find(x=>x.getAttribute('aria-label')==='Следующий трек'); if(!b) return 'NO BTN'; b.click(); return 'CLICKED';}""")
+        print("next:", nr)
+        await pg.wait_for_timeout(1500)
+        s=await st(); print("after next:", s.get("isPlaying"), (s.get("current") or {}).get("title"), "qIdx", s.get("queueIndex"))
+        # library nav errors
+        await pg.goto("http://localhost:5173/#/library"); await pg.wait_for_timeout(1500)
+        print("ERRS:", json.dumps(errs[:3], ensure_ascii=False))
+        await b.close()
 asyncio.run(main())

@@ -82,6 +82,10 @@ async def main():
             st3 = await state(pg)
             ok("music survives navigation") if st3["isPlaying"] and st3["currentTime"] > t1 else bad("continuity", (t1, st2["currentTime"], st3["currentTime"]))
             # --- PlayerBar controls: real clicks on the fixed bottom bar (z-40) ---
+            # NOTE: TrackRow play buttons use per-track aria-labels like
+            # "Пауза: Neon Drive" / "Играть: Neon Drive". We must match ONLY
+            # the exact global PlayerBar labels ("Пауза", "Воспроизвести",
+            # "Следующий трек"), and only inside div.fixed.bottom-0.
             async def click_bar(label):
                 for _ in range(30):
                     btns = pg.locator('div.fixed.bottom-0 button[aria-label]')

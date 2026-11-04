@@ -35,9 +35,9 @@ export function SearchPage() {
     let alive = true;
     setError(null);
     if (!debounced && !genre) {
-      // empty state: show full catalog via trending endpoint
+      // empty query: show full catalog via trending endpoint (backend rejects empty q with 400)
       musicApi
-        .search("")
+        .trending()
         .then((r) => alive && setResults(r.map(toFrontTrack)))
         .catch((e) => alive && setError(e.message));
       return;

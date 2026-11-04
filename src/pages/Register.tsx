@@ -79,7 +79,7 @@ export function RegisterPage() {
           </p>
         )}
 
-        <button className="btn-primary w-full" disabled={busy || !canSubmit}>
+        <button type="submit" className="btn-primary w-full" disabled={busy || !canSubmit}>
           {busy ? "Регистрация…" : "Зарегистрироваться"}
         </button>
 

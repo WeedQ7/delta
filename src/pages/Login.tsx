@@ -58,7 +58,7 @@ export function LoginPage() {
           </p>
         )}
 
-        <button className="btn-primary w-full" disabled={busy || !loginValue.trim() || !password}>
+        <button type="submit" className="btn-primary w-full" disabled={busy || !loginValue.trim() || !password}>
           {busy ? "Вход…" : "Войти"}
         </button>
 

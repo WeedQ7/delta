@@ -26,7 +26,7 @@ export function HomePage() {
   // Load real server data on mount.
   useEffect(() => {
     if (!loaded && !loading) void loadAll();
-    musicApi.search("").then(setCatalog).catch(() => setCatalog([]));
+    musicApi.trending().then(setCatalog).catch(() => setCatalog([]));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!loaded && loading) {

@@ -48,17 +48,22 @@ export const useData = create<DataState>()((set, get) => ({
   loadAll: async () => {
     set({ loading: true, error: null });
     try {
+      // Every endpoint must resolve to an array; a non-array payload (or a
+      // thrown error) used to crash subscribers with "undefined is not iterable".
+      const asArray = <T,>(p: Promise<T[]>): Promise<T[]> =>
+        p.then((r) => (Array.isArray(r) ? r : [])).catch(() => [] as T[]);
       const [trending, genres, favorites, playlists] = await Promise.all([
-        musicApi.trending(),
+        musicApi.trending().then((r) => (Array.isArray(r) ? r : [])),
         musicApi.genres().catch(() => [] as string[]),
-        musicApi.favorites().catch(() => [] as ApiTrack[]),
-        musicApi.playlists().catch(() => [] as ApiPlaylist[]),
+        asArray(musicApi.favorites()),
+        asArray(musicApi.playlists()),
       ]);
-      const [recent, recommendations, history] = await Promise.all([
-        musicApi.recent().catch(() => [] as ApiTrack[]),
-        musicApi.recommendations().catch(() => [] as ApiTrack[]),
-        musicApi.history().catch(() => [] as { playedAt: string; track: ApiTrack }[]),
+      const [recent, recommendations, historyRaw] = await Promise.all([
+        asArray(musicApi.recent()),
+        asArray(musicApi.recommendations()),
+        asArray(musicApi.history()),
       ]);
+      const history = historyRaw.filter((h: any) => h && h.track && typeof h.track.id === "string");
       set({
         trending: trending.map(mapT),
         genres,
@@ -80,7 +85,7 @@ export const useData = create<DataState>()((set, get) => ({
       const r = await musicApi.toggleFavorite(trackId);
       if (r.favorite) {
         const all = await musicApi.favorites();
-        set({ favorites: all });
+        set({ favorites: Array.isArray(all) ? all : get().favorites });
       } else {
         set({ favorites: get().favorites.filter((t) => t.id !== trackId) });
       }
@@ -118,9 +123,15 @@ export const useData = create<DataState>()((set, get) => ({
   },
 
   refreshPlaylists: async () => {
-    const playlists = await musicApi.playlists();
-    // re-fetch details so tracks are fresh
-    const detailed = await Promise.all(playlists.map((p) => musicApi.playlist(p.id).catch(() => p)));
+    const playlists = await musicApi.playlists().catch(() => [] as ApiPlaylist[]);
+    if (!Array.isArray(playlists)) return;
+    // re-fetch details so tracks are fresh; guarantee `tracks` is always an array
+    const detailed = await Promise.all(
+      playlists.map(async (p) => {
+        const full = await musicApi.playlist(p.id).catch(() => p);
+        return { ...full, tracks: Array.isArray(full.tracks) ? full.tracks : [] };
+      })
+    );
     set({ playlists: detailed });
   },
 

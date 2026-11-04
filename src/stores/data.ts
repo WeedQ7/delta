@@ -27,7 +27,8 @@ interface DataState {
   removeFromPlaylist: (playlistId: string, trackId: string) => Promise<void>;
   refreshPlaylists: () => Promise<void>;
   reportPlay: (trackId: string) => void;
-  findTrack: (id: string): Track | undefined;
+  findTrack: (id: string) => Track | undefined;
+  reset: () => void;
 }
 
 const mapT = (t: ApiTrack) => toFrontTrack(t);
@@ -138,4 +139,18 @@ export const useData = create<DataState>()((set, get) => ({
     for (const pl of get().playlists) for (const pt of pl.tracks ?? []) pool.push(mapT(pt.track));
     return pool.find((t) => t.id === id);
   },
+
+  reset: () =>
+    set({
+      loaded: false,
+      loading: false,
+      error: null,
+      trending: [],
+      genres: [],
+      recent: [],
+      recommendations: [],
+      favorites: [],
+      playlists: [],
+      history: [],
+    }),
 }));

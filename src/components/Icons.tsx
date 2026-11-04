@@ -122,6 +122,9 @@ export const IconMore = (p: P) => (
 export const IconClock = (p: P) => (
   <S {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.5 2" /></S>
 );
+export const IconBell = (p: P) => (
+  <S {...p}><path d="M6 9.5a6 6 0 1 1 12 0c0 4.5 2 5.5 2 5.5H4s2-1 2-5.5Z" /><path d="M10 19.5a2 2 0 0 0 4 0" /></S>
+);
 export const IconSparkle = (p: P) => (
   <S {...p}><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z" /></S>
 );

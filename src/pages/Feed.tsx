@@ -2,10 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { socialApi, musicApi, toFrontTrack, type ApiPost, type ApiTrack } from "../lib/api";
 import { useAuth } from "../stores/auth";
-import { Avatar, ErrorBox, Spinner, PostCard, toast } from "../components/ui";
+import { ErrorBox, Spinner, PostCard, toast } from "../components/ui";
 import { EmptyState } from "../components/EmptyState";
 import { IconPlay } from "../components/Icons";
-import { usePlayer } from "../stores/player";
 
 export function FeedPage() {
   const status = useAuth((s) => s.status);

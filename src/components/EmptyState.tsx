@@ -6,16 +6,16 @@ export function EmptyState({
   hint,
   action,
 }: {
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
   hint?: string;
   action?: ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-card border border-dashed border-line px-6 py-14 text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-pill bg-elevated text-muted">
-        {icon}
-      </span>
+      {icon && (
+        <span className="flex h-12 w-12 items-center justify-center rounded-pill bg-elevated text-muted">{icon}</span>
+      )}
       <p className="text-sm font-semibold">{title}</p>
       {hint && <p className="max-w-xs text-xs text-muted">{hint}</p>}
       {action}

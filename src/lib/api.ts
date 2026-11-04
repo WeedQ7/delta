@@ -18,7 +18,7 @@ export interface ApiTrack {
   playCount?: number;
   coverSeed?: string;
   artist?: { id: string; name: string };
-  album?: { id: string; title: string; year?: number | null; coverSeed?: string };
+  album?: { id: string; title: string; year?: number | null; releaseYear?: number | null; coverSeed?: string };
 }
 
 export interface ApiUser {

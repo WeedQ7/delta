@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { profileApi, socialApi, toFrontTrack, type ApiPost, type ApiUser } from "../lib/api";
+import { profileApi, socialApi, type ApiPost, type ApiUser } from "../lib/api";
 import { useAuth } from "../stores/auth";
 import { Avatar, ErrorBox, FollowButton, Spinner, PostCard, toast } from "../components/ui";
 import { EmptyState } from "../components/EmptyState";
-import { TrackRow } from "../components/TrackRow";
 
 export function UserProfilePage() {
   const { username } = useParams<{ username: string }>();

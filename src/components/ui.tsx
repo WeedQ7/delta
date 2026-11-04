@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../stores/auth";
-import { musicApi, profileApi, toFrontTrack, type ApiPlaylist, type ApiUser } from "../lib/api";
+import { musicApi, profileApi, socialApi, toFrontTrack, type ApiComment, type ApiPost, type ApiPlaylist, type ApiUser } from "../lib/api";
+import { IconHeart, IconPlay } from "./Icons";
+import { usePlayer } from "../stores/player";
 import type { Track } from "../types";
 
 /**
@@ -312,5 +314,182 @@ export function FollowButton({ target, onChanged }: { target: ApiUser; onChanged
     >
       {following ? "Вы подписаны" : "Подписаться"}
     </button>
+  );
+}
+
+/* ------------------------------------------------------------- post card */
+interface PostCardProps {
+  post: ApiPost;
+  onChanged?: () => void;
+  showComments?: boolean;
+}
+
+/** Publication card: author, text, attached track (playable), like toggle, comments. */
+export function PostCard({ post, onChanged, showComments }: PostCardProps) {
+  const me = useAuth((s) => s.user);
+  const [liked, setLiked] = useState(!!post.likedByMe);
+  const [likes, setLikes] = useState(post.likesCount ?? 0);
+  const [busy, setBusy] = useState(false);
+  const [comments, setComments] = useState<ApiComment[] | null>(null);
+  const [cText, setCText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [showC, setShowC] = useState(false);
+
+  useEffect(() => {
+    setLiked(!!post.likedByMe);
+    setLikes(post.likesCount ?? 0);
+  }, [post.id, post.likedByMe, post.likesCount]);
+
+  const loadComments = useCallback(async () => {
+    setShowC(true);
+    if (comments !== null) return;
+    try {
+      setComments(await socialApi.comments(post.id));
+    } catch {
+      setComments([]);
+    }
+  }, [comments, post.id]);
+
+  const toggleLike = async () => {
+    if (!me || busy) return;
+    setBusy(true);
+    try {
+      const r = await socialApi.like(post.id);
+      setLiked(r.liked);
+      setLikes((n) => Math.max(0, n + (r.liked ? 1 : -1)));
+      onChanged?.();
+    } catch (e: any) {
+      toast(e.message || "Не удалось оценить", "err");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sendComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = cText.trim();
+    if (!text || !me || sending) return;
+    setSending(true);
+    try {
+      const c = await socialApi.comment(post.id, text);
+      setComments((prev) => [...(prev ?? []), c]);
+      setCText("");
+      onChanged?.();
+    } catch (err: any) {
+      toast(err.message || "Комментарий не отправлен", "err");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const del = async () => {
+    if (!me || me.id !== post.authorId) return;
+    try {
+      await socialApi.deletePost(post.id);
+      toast("Публикация удалена");
+      onChanged?.();
+    } catch (e: any) {
+      toast(e.message || "Ошибка", "err");
+    }
+  };
+
+  const track = post.track ? toFrontTrack(post.track) : null;
+
+  return (
+    <article className="card space-y-3 p-4">
+      <header className="flex items-center gap-3">
+        <Link to={`/u/${post.author?.username ?? ""}`} className="shrink-0">
+          <Avatar user={{ ...(post.author as ApiUser) } as ApiUser} size={38} />
+        </Link>
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/u/${post.author?.username ?? ""}`}
+            className="block truncate text-sm font-semibold hover:text-accent"
+          >
+            {post.author?.profile?.displayName || post.author?.username}
+          </Link>
+          <p className="truncate text-xs text-muted">
+            @{post.author?.username} · {new Date(post.createdAt).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+          </p>
+        </div>
+        {me?.id === post.authorId && (
+          <button className="icon-btn !h-8 !w-8 text-muted" title="Удалить" onClick={del}>
+            ✕
+          </button>
+        )}
+      </header>
+
+      {post.text && <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{post.text}</p>}
+
+      {track && (
+        <button
+          className="flex w-full items-center gap-3 rounded-card bg-elevated p-3 text-left transition-colors hover:bg-line/60"
+          onClick={() => usePlayer.getState().playTrack(track)}
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-pill bg-accent text-accent-contrast">
+            <IconPlay size={16} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium">{track.title}</span>
+            <span className="block truncate text-xs text-muted">{track.artist}</span>
+          </span>
+        </button>
+      )}
+
+      <footer className="flex items-center gap-4 text-sm">
+        <button
+          onClick={toggleLike}
+          disabled={!me || busy}
+          className={`flex items-center gap-1.5 transition-colors disabled:opacity-40 ${liked ? "text-accent" : "text-muted hover:text-fg"}`}
+          aria-pressed={liked}
+        >
+          <IconHeart size={17} filled={liked} /> {likes}
+        </button>
+        <button
+          onClick={loadComments}
+          className="flex items-center gap-1.5 text-muted hover:text-fg"
+        >
+          💬 {post.commentsCount ?? comments?.length ?? 0}
+        </button>
+      </footer>
+
+      {showComments && showC && (
+        <div className="space-y-3 border-t border-line pt-3">
+          {comments === null ? (
+            <Spinner label="Загрузка комментариев…" />
+          ) : comments.length === 0 ? (
+            <p className="text-xs text-muted">Комментариев пока нет.</p>
+          ) : (
+            <ul className="space-y-2.5">
+              {comments.map((c) => (
+                <li key={c.id} className="flex items-start gap-2.5 text-sm">
+                  <Avatar user={c.author as ApiUser} size={28} />
+                  <div className="min-w-0">
+                    <Link to={`/u/${c.author?.username ?? ""}`} className="text-xs font-semibold hover:text-accent">
+                      @{c.author?.username}
+                    </Link>
+                    <p className="break-words">{c.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {me && (
+            <form onSubmit={sendComment} className="flex gap-2">
+              <input
+                className="input flex-1"
+                placeholder="Написать комментарий…"
+                value={cText}
+                onChange={(e) => setCText(e.target.value)}
+                maxLength={500}
+              />
+              <button className="btn-primary" disabled={sending || !cText.trim()}>
+                Отправить
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+    </article>
   );
 }

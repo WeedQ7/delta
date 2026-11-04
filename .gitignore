@@ -1,2 +1,2 @@
-server/dist/
-*.tsbuildinfo
+node_modules/
+dist/

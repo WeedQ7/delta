@@ -1,4 +1,5 @@
+node_modules/
 dist/
-server/dist/
+build/
+*.tsbuildinfo
 *.log
-.check/e2e_out.txt

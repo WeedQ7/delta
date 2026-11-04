@@ -11,13 +11,13 @@ PASS: currentTime advances >1s
 INFO queue buttons on home: 8 | queue len: 2
 PASS: add-to-queue grows queue
 PASS: music survives navigation
-FAIL: pause | (False, True)
-FAIL: frozen | (14.202484, 14.999379)
-FAIL: resume click | 
+PASS: pause stops playback (PlayerBar)
+PASS: time frozen while paused
+PASS: resume button found & clicked
 PASS: resume works
-FAIL: next click | 
+PASS: next button found & clicked
 PASS: next track switches queue item
-FAIL: js errors | ["Cannot read properties of undefined (reading 'startsWith')", "Cannot read properties of undefined (reading 'startsWith')"]
+PASS: no uncaught JS errors
 INFO 4xx API responses: 0 []
 PASS: mobile Login: no h-scroll
 PASS: mobile Register: no h-scroll
@@ -26,9 +26,4 @@ PASS: mobile Search: no h-scroll
 PASS: mobile Feed: no h-scroll
 PASS: mobile playback works
 
-==== RESULT: 19 PASS / 5 FAIL ====
-FAILED: ('pause', (False, True))
-FAILED: ('frozen', (14.202484, 14.999379))
-FAILED: ('resume click', '')
-FAILED: ('next click', '')
-FAILED: ('js errors', ["Cannot read properties of undefined (reading 'startsWith')", "Cannot read properties of undefined (reading 'startsWith')"])
+==== RESULT: 24 PASS / 0 FAIL ====

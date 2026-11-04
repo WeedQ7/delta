@@ -235,7 +235,16 @@ export function toFrontTrack(t: ApiTrack): Track {
     artist: t.artist?.name ?? "—",
     album: t.album?.title ?? "Single",
     durationSec: t.durationSec,
-    url: t.audioUrl.startsWith("http") || t.audioUrl.startsWith("/") ? t.audioUrl : `/audio/${t.audioUrl}`,
+    // Defensive: partial track payloads (e.g. a post-attached track fetched
+    // by id, or legacy rows) may lack audioUrl. Calling startsWith on
+    // undefined threw "Cannot read properties of undefined (reading
+    // 'startsWith')" and unmounted PlayerBar. Fall back to the canonical
+    // /audio/<id>.mp3 route; empty string means "no audio source".
+    url: !t.audioUrl
+      ? ""
+      : /^(https?:)?\//.test(t.audioUrl) || /\.(mp3|ogg|m4a|wav|flac)(\?|$)/i.test(t.audioUrl)
+        ? t.audioUrl
+        : `/audio/${t.audioUrl}`,
     coverSeed: seed % 100000,
     coverUrl: (t as any).coverUrl ?? (t.album as any)?.coverUrl,
     genre: t.genre,

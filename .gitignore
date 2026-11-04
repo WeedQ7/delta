@@ -1,3 +1,4 @@
 dist/
 server/dist/
-*.tsbuildinfo
+*.log
+.check/e2e_out.txt

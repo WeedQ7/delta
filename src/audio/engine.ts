@@ -18,7 +18,7 @@ import { useLibrary } from "../stores/library";
 import { useSettings } from "../stores/settings";
 
 /**
- * AudioEngine — the only place that touches the DOM <audio> element.
+ * AudioEngine — the only place that touches the DOM audio element.
  * Subscribes to player-store state and drives playback; writes time/duration
  * events back into the store via _sync. Business logic stays in the store,
  * so other clients (desktop/mobile) can reuse it with their own engines.
@@ -44,13 +44,52 @@ export const audioApi = {
   },
 };
 
+/* ---- module-level event handlers (single source of truth) ----
+ * Deliberately bound per-element rather than per-effect-instance: React
+ * StrictMode double-mounts effects in dev, and an older cleanup could have
+ * destroyed/recreated the element while the live one had no listeners at all.
+ * Symptom was: store claimed playing=true while audio was actually paused,
+ * time froze, and Pause/Resume/Next appeared broken though the element
+ * behaved fine. */
+
+const onTime = () => {
+  const a = getAudio();
+  usePlayer.getState()._sync({ currentTime: a.currentTime });
+};
+
+const onMeta = () => {
+  const a = getAudio();
+  if (Number.isFinite(a.duration) && a.duration > 0) {
+    usePlayer.getState()._sync({ duration: a.duration });
+  }
+};
+
+const onEnded = () => {
+  const st = usePlayer.getState();
+  if (st.repeat === "one") {
+    const a = getAudio();
+    a.currentTime = 0;
+    void a.play();
+  } else {
+    st.next();
+  }
+};
+
+const onPause = () => {
+  // Mirror real user-driven pauses into the store, but only while the store
+  // thinks playback is active and the element didn't just end naturally.
+  const a = getAudio();
+  if (usePlayer.getState().isPlaying && !a.ended) {
+    usePlayer.getState()._sync({ isPlaying: false });
+  }
+};
+
 /** Mount once in App. Returns nothing; purely wires store <-> element. */
 export function useAudioEngine() {
   const current = usePlayer((s) => s.current);
   const isPlaying = usePlayer((s) => s.isPlaying);
   const currentTime = usePlayer((s) => s.currentTime);
   const volume = useSettings((s) => s.volume);
-  const repeat = usePlayer((s) => s.repeat);
 
   // Load source when track changes
   useEffect(() => {
@@ -95,43 +134,24 @@ export function useAudioEngine() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTime]);
 
-  // Element events -> store
+  // Element events -> store (kept wired even if the element is recreated)
   useEffect(() => {
-    const a = getAudio();
-    const onTime = () =>
-      usePlayer.getState()._sync({ currentTime: a.currentTime });
-    const onMeta = () => {
-      if (Number.isFinite(a.duration) && a.duration > 0) {
-        usePlayer.getState()._sync({ duration: a.duration });
-      }
-    };
-    const onEnded = () => {
-      const st = usePlayer.getState();
-      if (st.repeat === "one") {
-        a.currentTime = 0;
-        void a.play();
-      } else {
-        st.next();
-      }
-    };
-    const onPause = () => {
-      // Only mirror user-driven pauses; store controls are authoritative otherwise.
-      if (usePlayer.getState().isPlaying && !a.ended) {
-        usePlayer.getState()._sync({ isPlaying: false });
-      }
-    };
-    a.addEventListener("timeupdate", onTime);
-    a.addEventListener("loadedmetadata", onMeta);
-    a.addEventListener("ended", onEnded);
-    a.addEventListener("pause", onPause);
-    return () => {
+    const bind = () => {
+      const a = getAudio();
       a.removeEventListener("timeupdate", onTime);
       a.removeEventListener("loadedmetadata", onMeta);
       a.removeEventListener("ended", onEnded);
       a.removeEventListener("pause", onPause);
+      a.addEventListener("timeupdate", onTime);
+      a.addEventListener("loadedmetadata", onMeta);
+      a.addEventListener("ended", onEnded);
+      a.addEventListener("pause", onPause);
     };
+    bind();
+    const timer = setInterval(bind, 300);
+    return () => clearInterval(timer);
   }, []);
 
   // keep repeat referenced to avoid unused-var lint noise in strict builds
-  void repeat;
+  void usePlayer((s) => s.repeat);
 }

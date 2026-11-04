@@ -1,0 +1,29 @@
+PASS: anon redirect to /login
+PASS: register via UI -> app opens
+PASS: profile shows new user
+PASS: logout -> login page
+PASS: login by email
+PASS: session restored after reload
+PASS: search neon finds Neon Drive
+INFO playable rows: 0
+PASS: play starts (playing=true)
+PASS: currentTime advances >1s
+INFO queue buttons on home: 8 | queue len: 2
+PASS: add-to-queue grows queue
+PASS: music survives navigation
+PASS: pause stops playback (PlayerBar)
+PASS: time frozen while paused
+PASS: resume button found & clicked
+PASS: resume works
+PASS: next button found & clicked
+PASS: next track switches queue item
+PASS: no uncaught JS errors
+INFO 4xx API responses: 0 []
+PASS: mobile Login: no h-scroll
+PASS: mobile Register: no h-scroll
+PASS: mobile Home: no h-scroll
+PASS: mobile Search: no h-scroll
+PASS: mobile Feed: no h-scroll
+PASS: mobile playback works
+
+==== RESULT: 24 PASS / 0 FAIL ====

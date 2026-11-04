@@ -1,0 +1,157 @@
+import { useEffect } from "react";
+import { usePlayer } from "../stores/player";
+
+/**
+ * Safe, read-only E2E/debug hook: exposes the live player state on window.
+ * Does not alter playback logic; used by Playwright to verify that audio is
+ * actually advancing and survives route navigation.
+ */
+declare global {
+  interface Window {
+    __deltaPlayer?: { getState: () => unknown };
+  }
+}
+if (typeof window !== "undefined") {
+  window.__deltaPlayer = { getState: () => usePlayer.getState() };
+}
+import { useLibrary } from "../stores/library";
+import { useSettings } from "../stores/settings";
+
+/**
+ * AudioEngine — the only place that touches the DOM audio element.
+ * Subscribes to player-store state and drives playback; writes time/duration
+ * events back into the store via _sync. Business logic stays in the store,
+ * so other clients (desktop/mobile) can reuse it with their own engines.
+ */
+let audioEl: HTMLAudioElement | null = null;
+
+function getAudio(): HTMLAudioElement {
+  if (!audioEl) {
+    audioEl = new Audio();
+    audioEl.preload = "metadata";
+  }
+  return audioEl;
+}
+
+/** Imperative helpers used by components (seek needs real element access). */
+export const audioApi = {
+  seekTo(sec: number) {
+    const a = getAudio();
+    if (a.readyState >= 1 || Number.isFinite(a.duration)) {
+      a.currentTime = sec;
+    }
+    usePlayer.getState()._sync({ currentTime: sec });
+  },
+};
+
+/* ---- module-level event handlers (single source of truth) ----
+ * Deliberately bound per-element rather than per-effect-instance: React
+ * StrictMode double-mounts effects in dev, and an older cleanup could have
+ * destroyed/recreated the element while the live one had no listeners at all.
+ * Symptom was: store claimed playing=true while audio was actually paused,
+ * time froze, and Pause/Resume/Next appeared broken though the element
+ * behaved fine. */
+
+const onTime = () => {
+  const a = getAudio();
+  usePlayer.getState()._sync({ currentTime: a.currentTime });
+};
+
+const onMeta = () => {
+  const a = getAudio();
+  if (Number.isFinite(a.duration) && a.duration > 0) {
+    usePlayer.getState()._sync({ duration: a.duration });
+  }
+};
+
+const onEnded = () => {
+  const st = usePlayer.getState();
+  if (st.repeat === "one") {
+    const a = getAudio();
+    a.currentTime = 0;
+    void a.play();
+  } else {
+    st.next();
+  }
+};
+
+const onPause = () => {
+  // Mirror real user-driven pauses into the store, but only while the store
+  // thinks playback is active and the element didn't just end naturally.
+  const a = getAudio();
+  if (usePlayer.getState().isPlaying && !a.ended) {
+    usePlayer.getState()._sync({ isPlaying: false });
+  }
+};
+
+/** Mount once in App. Returns nothing; purely wires store <-> element. */
+export function useAudioEngine() {
+  const current = usePlayer((s) => s.current);
+  const isPlaying = usePlayer((s) => s.isPlaying);
+  const currentTime = usePlayer((s) => s.currentTime);
+  const volume = useSettings((s) => s.volume);
+
+  // Load source when track changes
+  useEffect(() => {
+    const a = getAudio();
+    if (!current) {
+      a.pause();
+      a.removeAttribute("src");
+      return;
+    }
+    if (a.src !== new URL(current.url, location.origin).href) {
+      a.src = current.url;
+      a.load();
+    }
+    useLibrary.getState().markPlayed(current.id);
+  }, [current]);
+
+  // Play / pause
+  useEffect(() => {
+    const a = getAudio();
+    if (!current) return;
+    if (isPlaying) {
+      a.play().catch(() => {
+        // Autoplay blocked or load error — reflect reality, don't hide it.
+        usePlayer.getState()._sync({ isPlaying: false });
+      });
+    } else {
+      a.pause();
+    }
+  }, [isPlaying, current]);
+
+  // Volume
+  useEffect(() => {
+    getAudio().volume = volume;
+  }, [volume]);
+
+  // Seek when store time jumps far from element time (prev/restart/seek)
+  useEffect(() => {
+    const a = getAudio();
+    if (Math.abs(a.currentTime - currentTime) > 1.5) {
+      audioApi.seekTo(currentTime);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTime]);
+
+  // Element events -> store (kept wired even if the element is recreated)
+  useEffect(() => {
+    const bind = () => {
+      const a = getAudio();
+      a.removeEventListener("timeupdate", onTime);
+      a.removeEventListener("loadedmetadata", onMeta);
+      a.removeEventListener("ended", onEnded);
+      a.removeEventListener("pause", onPause);
+      a.addEventListener("timeupdate", onTime);
+      a.addEventListener("loadedmetadata", onMeta);
+      a.addEventListener("ended", onEnded);
+      a.addEventListener("pause", onPause);
+    };
+    bind();
+    const timer = setInterval(bind, 300);
+    return () => clearInterval(timer);
+  }, []);
+
+  // keep repeat referenced to avoid unused-var lint noise in strict builds
+  void usePlayer((s) => s.repeat);
+}

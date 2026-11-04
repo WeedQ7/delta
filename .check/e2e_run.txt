@@ -1,0 +1,35 @@
+PASS: anon redirect to /login
+PASS: register via UI -> app opens
+PASS: profile shows new user
+PASS: logout -> login page
+PASS: login by email
+PASS: session restored after reload
+PASS: search neon finds Neon Drive
+INFO playable rows: 0
+PASS: play starts (playing=true)
+PASS: currentTime advances >1s
+INFO queue buttons on home: 8 | queue len: 2
+PASS: add-to-queue grows queue
+PASS: music survives navigation
+FAIL: pause | (False, True)
+PASS: time frozen while paused
+FAIL: resume click | 
+FAIL: resume | True
+FAIL: next click | 
+FAIL: next | ('70a7f4b2-296e-4487-97b1-fa3e1eadbaa5', 2, 'Neon Drive')
+FAIL: js errors | ['undefined is not iterable (cannot read property Symbol(Symbol.iterator))', 'undefined is not iterable (cannot read property Symbol(Symbol.iterator))
+INFO 4xx API responses: 0 []
+PASS: mobile Login: no h-scroll
+PASS: mobile Register: no h-scroll
+PASS: mobile Home: no h-scroll
+PASS: mobile Search: no h-scroll
+PASS: mobile Feed: no h-scroll
+PASS: mobile playback works
+
+==== RESULT: 18 PASS / 6 FAIL ====
+FAILED: ('pause', (False, True))
+FAILED: ('resume click', '')
+FAILED: ('resume', True)
+FAILED: ('next click', '')
+FAILED: ('next', ('70a7f4b2-296e-4487-97b1-fa3e1eadbaa5', 2, 'Neon Drive'))
+FAILED: ('js errors', ['undefined is not iterable (cannot read property Symbol(Symbol.iterator))', 'undefined is not iterable (cannot read property Symbol(Symbol.iterator))'])

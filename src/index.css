@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- Design tokens ---------- */
+:root {
+  --c-bg: 248 249 251;
+  --c-surface: 255 255 255;
+  --c-elevated: 242 243 247;
+  --c-line: 226 228 235;
+  --c-fg: 18 20 26;
+  --c-muted: 100 106 120;
+  --c-faint: 150 156 168;
+  --c-accent: 16 185 129; /* default emerald */
+  --c-accent-soft: 209 250 229;
+  --c-accent-contrast: 255 255 255;
+  --c-coin: 217 164 65;
+  --c-danger: 220 38 38;
+}
+
+[data-theme="dark"] {
+  --c-bg: 12 13 16;
+  --c-surface: 20 21 26;
+  --c-elevated: 30 32 39;
+  --c-line: 43 46 55;
+  --c-fg: 240 242 246;
+  --c-muted: 148 153 166;
+  --c-faint: 105 111 125;
+  --c-accent-soft: 24 63 50;
+  --c-accent-contrast: 8 12 10;
+  --c-coin: 233 187 89;
+  --c-danger: 248 113 113;
+}
+
+/* Accent palettes (settings) — accent + soft pairs */
+[data-accent="emerald"] { --c-accent: 16 185 129; }
+[data-accent="violet"] { --c-accent: 139 92 246; }
+[data-accent="rose"] { --c-accent: 244 63 94; }
+[data-accent="amber"] { --c-accent: 245 158 11; }
+[data-accent="sky"] { --c-accent: 14 165 233; }
+[data-theme="dark"][data-accent="emerald"] { --c-accent: 52 211 153; --c-accent-soft: 20 52 42; }
+[data-theme="dark"][data-accent="violet"] { --c-accent: 167 139 250; --c-accent-soft: 45 32 74; }
+[data-theme="dark"][data-accent="rose"] { --c-accent: 251 113 133; --c-accent-soft: 66 26 38; }
+[data-theme="dark"][data-accent="amber"] { --c-accent: 251 191 36; --c-accent-soft: 63 45 12; }
+[data-theme="dark"][data-accent="sky"] { --c-accent: 56 189 248; --c-accent-soft: 12 48 66; }
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-bg text-fg font-sans antialiased;
+  overscroll-behavior-y: none;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--c-line)) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--c-line));
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::selection {
+  background: rgb(var(--c-accent) / 0.3);
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill px-4 py-2 text-sm font-medium
+      transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-accent disabled:opacity-50 disabled:pointer-events-none select-none;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-accent-contrast hover:brightness-110 active:brightness-95;
+  }
+  .btn-secondary {
+    @apply btn bg-elevated text-fg hover:bg-line;
+  }
+  .btn-ghost {
+    @apply btn text-muted hover:text-fg hover:bg-elevated;
+  }
+  .card {
+    @apply rounded-card bg-surface border border-line;
+  }
+  .icon-btn {
+    @apply inline-flex items-center justify-center w-9 h-9 rounded-pill text-muted
+      hover:text-fg hover:bg-elevated transition-colors focus-visible:outline focus-visible:outline-2
+      focus-visible:outline-accent;
+  }
+  .input {
+    @apply w-full rounded-card bg-elevated border border-line px-3.5 py-2.5 text-sm text-fg
+      placeholder:text-faint outline-none focus:border-accent transition-colors;
+  }
+  .section-title {
+    @apply text-lg sm:text-xl font-bold tracking-tight;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-pill px-3 py-1 text-xs font-medium;
+  }
+  .badge-test {
+    @apply chip bg-coin/15 text-coin border border-coin/30;
+  }
+}
+
+/* Skeleton loading */
+.skeleton {
+  @apply rounded-card bg-elevated;
+  background-image: linear-gradient(
+    90deg,
+    rgb(var(--c-elevated)) 0%,
+    rgb(var(--c-line)) 45%,
+    rgb(var(--c-elevated)) 90%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+/* Equalizer bars for "now playing" indicator */
+.eq-bar {
+  transform-origin: bottom;
+  animation: equalize 0.9s ease-in-out infinite;
+}
+@keyframes equalize {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* Range inputs (volume / seek) */
+input[type="range"].delta-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    rgb(var(--c-accent)) 0%,
+    rgb(var(--c-accent)) var(--fill, 50%),
+    rgb(var(--c-line)) var(--fill, 50%),
+    rgb(var(--c-line)) 100%
+  );
+  cursor: pointer;
+}
+input[type="range"].delta-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgb(var(--c-fg));
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+input[type="range"].delta-range:hover::-webkit-slider-thumb,
+input[type="range"].delta-range:focus::-webkit-slider-thumb {
+  opacity: 1;
+}
+input[type="range"].delta-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: rgb(var(--c-fg));
+  opacity: 0;
+}
+input[type="range"].delta-range:hover::-moz-range-thumb {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

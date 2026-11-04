@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+server/dist/
+build/
+
+# secrets — keep .env.example templates only
+.env
+.env.*
+!.env.example
+
+# build/test artifacts
+*.tsbuildinfo
+*.log
+.playwright/
+.check/__pycache__/
+.check/*.txt
+coverage/
+
+# local IDE / OS files
+.vscode/
+.idea/
+.DS_Store

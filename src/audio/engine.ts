@@ -1,5 +1,19 @@
 import { useEffect } from "react";
 import { usePlayer } from "../stores/player";
+
+/**
+ * Safe, read-only E2E/debug hook: exposes the live player state on window.
+ * Does not alter playback logic; used by Playwright to verify that audio is
+ * actually advancing and survives route navigation.
+ */
+declare global {
+  interface Window {
+    __deltaPlayer?: { getState: () => unknown };
+  }
+}
+if (typeof window !== "undefined") {
+  window.__deltaPlayer = { getState: () => usePlayer.getState() };
+}
 import { useLibrary } from "../stores/library";
 import { useSettings } from "../stores/settings";
 

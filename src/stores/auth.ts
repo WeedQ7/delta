@@ -39,7 +39,10 @@ export const useAuth = create<AuthState>()((set, get) => ({
     try {
       const r = await authApi.login(login, password);
       setTokens(r.accessToken, r.refreshToken);
-      set({ user: r.user ?? null, status: "authenticated", busy: false });
+      // Backend returns only tokens — fetch the full user via /auth/me.
+      let me = r.user ?? null;
+      if (!me) { try { me = await authApi.me(); } catch { /* bootstrap will retry */ } }
+      set({ user: me, status: "authenticated", busy: false });
       return true;
     } catch (e: any) {
       set({ busy: false, error: e.message || "Не удалось войти" });
@@ -52,7 +55,10 @@ export const useAuth = create<AuthState>()((set, get) => ({
     try {
       const r = await authApi.register(data);
       setTokens(r.accessToken, r.refreshToken);
-      set({ user: r.user ?? null, status: "authenticated", busy: false });
+      // Backend returns only tokens — fetch the full user via /auth/me.
+      let me = r.user ?? null;
+      if (!me) { try { me = await authApi.me(); } catch { /* bootstrap will retry */ } }
+      set({ user: me, status: "authenticated", busy: false });
       return true;
     } catch (e: any) {
       set({ busy: false, error: e.message || "Не удалось зарегистрироваться" });

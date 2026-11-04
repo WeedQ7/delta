@@ -65,7 +65,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route element={<AppLayout />}>
-          <Route index element={<HomePage />} />
+          <Route index element={<RequireAuth><HomePage /></RequireAuth>} />
           <Route path="search" element={<SearchPage />} />
           <Route path="library" element={<RequireAuth><LibraryPage /></RequireAuth>} />
           <Route path="favorites" element={<RequireAuth><FavoritesPage /></RequireAuth>} />

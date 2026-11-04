@@ -1,0 +1,8 @@
+URL after login: http://localhost:5173/#/
+search placeholder: Треки, исполнители, альбомы…
+row visible: True
+buttons in row: ['Играть: Neon Drive', 'Добавить в плейлист', 'Добавить в очередь', 'Добавить в избранное']
+STATE playing=True time=2.15 dur=26.00 title=Neon Drive url=/audio/track1.mp3
+DIAG: ["play() src=http://localhost:5173/audio/track1.mp3", "play() RESOLVED"]
+AFTER HOME NAV playing=True time=3.75
+CONSOLE ERRS: ['error:Failed to load resource: the server responded with a status of 400 (Bad Request)', 'error:Failed to load resource: the server responded with a status of 400 (Bad Request)', 'error:Failed to load resource: the server responded with a status of 400 (Bad Request)', 'error:Failed to load resource: the server responded with a status of 400 (Bad Request)', 'error:Failed to load resource: the server responded with a status of 400 (Bad Request)', 'error:Failed to load resource: the server responded with a status of 400 (Bad Request)']

@@ -1,0 +1,5 @@
+playing: True t: 2.29
+click_bar selector finds buttons: 8
+matching buttons w/ rects: [["Пауза: Neon Drive", 245, 32, "relative w-8 h-8 shrink-0 flex items-cen"], ["Пауза", 838, 40, "flex h-10 w-10 items-center justify-cent"], ["Следующий трек", 840, 36, "icon-btn"]]
+clicked: True -> isPlaying now: False
+JS ERRORS: []

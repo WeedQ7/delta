@@ -1,0 +1,54 @@
+URL after register: http://localhost:5173/#/
+row count: 1
+queue buttons: 1
+  btn0 rowtext: '1Neon DriveNova CircuitNova Circuit EP3:20'
+after direct queue click: queue len = 1 ['Neon Drive']
+playing: True t: 1.76709 queue: 1
+[
+ {
+  "al": "Пауза: Neon Drive",
+  "rect": [
+   287,
+   245,
+   32,
+   32
+  ],
+  "chain": [
+   "relative w-8 h-8 shrink-0 flex items-center justify-center t",
+   "group flex items-center gap-3 rounded-card px-2 py-2 transit",
+   "card divide-y divide-line p-1.5",
+   ""
+  ]
+ },
+ {
+  "al": "Пауза",
+  "rect": [
+   620,
+   838,
+   40,
+   40
+  ],
+  "chain": [
+   "flex h-10 w-10 items-center justify-center rounded-pill bg-a",
+   "flex items-center gap-1",
+   "flex flex-[2] flex-col items-center gap-1",
+   "mx-auto flex h-16 max-w-screen-2xl items-center gap-3 px-3 s"
+  ]
+ },
+ {
+  "al": "Следующий трек",
+  "rect": [
+   664,
+   840,
+   36,
+   36
+  ],
+  "chain": [
+   "icon-btn",
+   "flex items-center gap-1",
+   "flex flex-[2] flex-col items-center gap-1",
+   "mx-auto flex h-16 max-w-screen-2xl items-center gap-3 px-3 s"
+  ]
+ }
+]
+JS ERRORS: []

@@ -1,0 +1,29 @@
+PASS: anon redirect to /login
+PASS: register via UI -> app opens
+PASS: profile shows new user
+PASS: logout -> login page
+PASS: login by email
+PASS: session restored after reload
+PASS: search neon finds Neon Drive
+PASS: play starts (playing=true)
+PASS: currentTime advances >1s
+PASS: music survives navigation
+INFO queue len: 1
+FAIL: pause | (False, True)
+PASS: time frozen while paused
+FAIL: resume | {'current': {'id': '70a7f4b2-296e-4487-97b1-fa3e1eadbaa5', 'title': 'Neon Drive', 'artist': 'Nova Circuit', 'album': 'Nova Circuit EP', 'durationSec':
+FAIL: next | 70a7f4b2-296e-4487-97b1-fa3e1eadbaa5
+FAIL: js errors | ['undefined is not iterable (cannot read property Symbol(Symbol.iterator))', 'undefined is not iterable (cannot read property Symbol(Symbol.iterator))
+INFO 4xx API responses: 8 [(400, 'http://localhost:5173/api/tracks/search?q='), (400, 'http://localhost:5173/api/tracks/search?q='), (400, 'http://localhost:5173/api/tracks/search?q='), (400, 'http://localhost:5173/api/tracks/search?q=')]
+PASS: mobile Login: no h-scroll
+PASS: mobile Register: no h-scroll
+PASS: mobile Home: no h-scroll
+PASS: mobile Search: no h-scroll
+PASS: mobile Feed: no h-scroll
+PASS: mobile playback works
+
+==== RESULT: 17 PASS / 4 FAIL ====
+FAILED: ('pause', (False, True))
+FAILED: ('resume', {'current': {'id': '70a7f4b2-296e-4487-97b1-fa3e1eadbaa5', 'title': 'Neon Drive', 'artist': 'Nova Circuit', 'album': 'Nova Circuit EP', 'durationSec': 200, 'url': '/audio/track1.mp3', 'coverSeed': 60199, 'coverUrl': None, 'genre': 'Ambient', 'year': 2026}, 'queue': [{'id': '70a7f4b2-296e-4487-97b1-fa3e1eadbaa5', 'title': 'Neon Drive', 'artist': 'Nova Circuit', 'album': 'Nova Circuit EP', 'durationSec': 200, 'url': '/audio/track1.mp3', 'coverSeed': 60199, 'coverUrl': None, 'genre': 'Ambient', 'year': 2026}], 'queueIndex': 0, 'contextLabel': 'Поиск', 'isPlaying': True, 'currentTime': 3.599484, 'duration': 26, 'repeat': 'off', 'shuffle': False, 'playTrack': None, 'togglePlay': None, 'next': None, 'prev': None, 'seek': None, 'setRepeat': None, 'cycleRepeat': None, 'toggleShuffle': None, 'addToQueue': None, 'removeFromQueue': None, 'jumpTo': None, 'clearQueue': None, '_sync': None})
+FAILED: ('next', '70a7f4b2-296e-4487-97b1-fa3e1eadbaa5')
+FAILED: ('js errors', ['undefined is not iterable (cannot read property Symbol(Symbol.iterator))', 'undefined is not iterable (cannot read property Symbol(Symbol.iterator))'])

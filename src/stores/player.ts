@@ -110,10 +110,17 @@ export const usePlayer = create<PlayerState>()((set, get) => ({
     set((s) => {
       const queue = [...s.queue, track];
       const first = s.current === null;
+      // keep queueIndex consistent with the real position of `current`,
+      // otherwise next/prev jump to wrong items after "add to queue"
+      let idx = first ? 0 : s.queueIndex;
+      if (!first && idx >= 0) {
+        const pos = queue.findIndex((t) => t.id === s.current!.id);
+        if (pos >= 0) idx = pos;
+      }
       return {
         queue,
         current: first ? track : s.current,
-        queueIndex: first ? 0 : s.queueIndex,
+        queueIndex: idx,
         isPlaying: first ? true : s.isPlaying,
       };
     }),

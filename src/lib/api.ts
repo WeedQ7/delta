@@ -9,6 +9,7 @@ const BASE = "/api";
 
 export interface ApiTrack {
   id: string;
+  coverUrl?: string;
   title: string;
   durationSec: number;
   audioUrl: string;
@@ -17,7 +18,7 @@ export interface ApiTrack {
   playCount?: number;
   coverSeed?: string;
   artist?: { id: string; name: string };
-  album?: { id: string; title: string; year?: number | null };
+  album?: { id: string; title: string; year?: number | null; coverSeed?: string };
 }
 
 export interface ApiUser {
@@ -232,7 +233,8 @@ export function toFrontTrack(t: ApiTrack): Track {
     durationSec: t.durationSec,
     url: t.audioUrl.startsWith("http") || t.audioUrl.startsWith("/") ? t.audioUrl : `/audio/${t.audioUrl}`,
     coverSeed: seed % 100000,
+    coverUrl: (t as any).coverUrl ?? (t.album as any)?.coverUrl,
     genre: t.genre,
-    year: t.album?.year ?? new Date().getFullYear(),
+    year: t.album?.releaseYear ?? t.album?.year ?? new Date().getFullYear(),
   };
 }

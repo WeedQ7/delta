@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import { mulberry32 } from "../lib/utils";
 
 /**
@@ -65,6 +65,8 @@ interface CoverProps {
   rounded?: "sm" | "md" | "card" | "pill";
   className?: string;
   alt?: string;
+  /** real cover image from backend; falls back to generative art on error/absence */
+  imageUrl?: string;
 }
 
 const radiusMap = { sm: 4, md: 8, card: 14, pill: 999 } as const;
@@ -75,7 +77,23 @@ export const Cover = memo(function Cover({
   rounded = "md",
   className,
   alt = "",
+  imageUrl,
 }: CoverProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+  if (imageUrl && !imgFailed) {
+    return (
+      <img
+        src={imageUrl}
+        alt={alt}
+        width={size}
+        height={size}
+        loading="lazy"
+        onError={() => setImgFailed(true)}
+        className={className}
+        style={{ borderRadius: radiusMap[rounded], flexShrink: 0, display: "block", objectFit: "cover" }}
+      />
+    );
+  }
   const palette = useMemo(() => PALETTES[seed % PALETTES.length], [seed]);
   const shapes = useMemo(() => buildShapes(seed * 7919), [seed]);
   const gid = `cg-${seed}`;

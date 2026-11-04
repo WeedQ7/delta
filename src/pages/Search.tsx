@@ -1,41 +1,64 @@
-import { useEffect, useMemo, useState } from "react";
-import { TRACKS, GENRES, trackById } from "../data/tracks";
-import { useLibrary } from "../stores/library";
+import { useEffect, useState } from "react";
+import { useData } from "../stores/data";
+import { musicApi, toFrontTrack, type ApiTrack } from "../lib/api";
+import type { Track } from "../types";
 import { usePlayer } from "../stores/player";
 import { TrackRow } from "../components/TrackRow";
 import { EmptyState } from "../components/EmptyState";
-import { Cover } from "../components/Cover";
+import { ErrorBox, PlaylistPicker, Spinner } from "../components/ui";
 import { IconSearch, IconClose, IconPlay } from "../components/Icons";
 
 export function SearchPage() {
+  const genres = useData((s) => s.genres);
+  const loaded = useData((s) => s.loaded);
+  const loadAll = useData((s) => s.loadAll);
+
   const [query, setQuery] = useState("");
   const [genre, setGenre] = useState<string | null>(null);
   const [debounced, setDebounced] = useState("");
-  const playlists = useLibrary((s) => s.playlists);
-  const addToPlaylist = useLibrary((s) => s.addToPlaylist);
+  const [results, setResults] = useState<Track[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pickerFor, setPickerFor] = useState<string | null>(null);
   const playTrack = usePlayer((s) => s.playTrack);
-  const [pickerFor, setPickerFor] = useState<string | null>(null); // trackId
 
-  // light debounce to keep typing snappy
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(query.trim().toLowerCase()), 180);
+    if (!loaded) void loadAll();
+  }, [loaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query.trim()), 200);
     return () => clearTimeout(t);
   }, [query]);
 
-  const results = useMemo(() => {
-    let list = TRACKS;
-    if (genre) list = list.filter((t) => t.genre === genre);
-    if (!debounced) return list;
-    return list.filter((t) =>
-      [t.title, t.artist, t.album, t.genre].some((f) => f.toLowerCase().includes(debounced))
-    );
+  // Real server search (with client-side genre filter on the returned page).
+  useEffect(() => {
+    let alive = true;
+    setError(null);
+    if (!debounced && !genre) {
+      // empty state: show full catalog via trending endpoint
+      musicApi
+        .search("")
+        .then((r) => alive && setResults(r.map(toFrontTrack)))
+        .catch((e) => alive && setError(e.message));
+      return;
+    }
+    musicApi
+      .search(debounced)
+      .then((r: ApiTrack[]) => {
+        if (!alive) return;
+        const list = r.map(toFrontTrack);
+        setResults(genre ? list.filter((t) => t.genre === genre) : list);
+      })
+      .catch((e) => alive && setError(e.message || "Ошибка поиска"));
+    return () => {
+      alive = false;
+    };
   }, [debounced, genre]);
 
   return (
     <div className="space-y-6">
       <h1 className="section-title text-2xl">Поиск музыки</h1>
 
-      {/* Search field */}
       <div className="relative">
         <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint">
           <IconSearch size={18} />
@@ -59,7 +82,6 @@ export function SearchPage() {
         )}
       </div>
 
-      {/* Genre chips */}
       <div className="flex flex-wrap gap-2">
         <button
           className={`chip ${!genre ? "bg-accent text-accent-contrast" : "bg-elevated text-muted hover:text-fg"}`}
@@ -67,7 +89,7 @@ export function SearchPage() {
         >
           Все
         </button>
-        {GENRES.map((g) => (
+        {genres.map((g) => (
           <button
             key={g}
             className={`chip ${genre === g ? "bg-accent text-accent-contrast" : "bg-elevated text-muted hover:text-fg"}`}
@@ -78,12 +100,15 @@ export function SearchPage() {
         ))}
       </div>
 
-      {/* Results */}
-      {results.length === 0 ? (
+      {error ? (
+        <ErrorBox message={error} onRetry={() => setDebounced((d) => d + "")} />
+      ) : results === null ? (
+        <Spinner />
+      ) : results.length === 0 ? (
         <EmptyState
           icon={<IconSearch size={22} />}
           title="Ничего не найдено"
-          hint={`По запросу «${query}» в демо-каталоге совпадений нет. Попробуйте другое слово или снимите фильтр жанра.`}
+          hint={debounced ? `По запросу «${debounced}» совпадений нет. Попробуйте другое слово или снимите фильтр жанра.` : "Введите запрос, чтобы найти треки."}
           action={
             <button className="btn-secondary" onClick={() => { setQuery(""); setGenre(null); }}>
               Сбросить фильтры
@@ -113,43 +138,7 @@ export function SearchPage() {
         </section>
       )}
 
-      {/* Add-to-playlist picker modal */}
-      {pickerFor && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
-          onClick={() => setPickerFor(null)}
-          role="dialog"
-          aria-label="Выберите плейлист"
-        >
-          <div
-            className="card w-full max-w-sm animate-fade-up bg-surface p-4 shadow-pop"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="mb-3 text-sm font-semibold">
-              Добавить «{trackById(pickerFor)?.title}» в плейлист
-            </p>
-            <ul className="space-y-1">
-              {playlists.map((pl) => (
-                <li key={pl.id}>
-                  <button
-                    className="flex w-full items-center gap-3 rounded-card px-2 py-2 text-left text-sm hover:bg-elevated"
-                    onClick={() => {
-                      addToPlaylist(pl.id, pickerFor);
-                      setPickerFor(null);
-                    }}
-                  >
-                    <Cover seed={pl.coverSeed} size={32} alt={pl.title} />
-                    {pl.title}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button className="btn-ghost mt-3 w-full" onClick={() => setPickerFor(null)}>
-              Отмена
-            </button>
-          </div>
-        </div>
-      )}
+      <PlaylistPicker trackId={pickerFor} onClose={() => setPickerFor(null)} />
     </div>
   );
 }

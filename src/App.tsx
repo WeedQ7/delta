@@ -1,9 +1,13 @@
 import { useEffect } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import { PlayerBar } from "./components/PlayerBar";
+import { Toaster } from "./components/ui";
 import { useAudioEngine } from "./audio/engine";
 import { useSettings, applyAppearance } from "./stores/settings";
+import { useAuth } from "./stores/auth";
+import { useData } from "./stores/data";
+import { Spinner } from "./components/ui";
 import { HomePage } from "./pages/Home";
 import { SearchPage } from "./pages/Search";
 import { LibraryPage } from "./pages/Library";
@@ -11,42 +15,66 @@ import { FavoritesPage } from "./pages/Favorites";
 import { PlaylistsPage, PlaylistDetailPage } from "./pages/Playlists";
 import { ProfilePage } from "./pages/Profile";
 import { SettingsPage } from "./pages/Settings";
-import { SubscriptionsPage } from "./pages/Subscriptions";
-import { CoinsPage } from "./pages/Coins";
-import { MarketplacePage } from "./pages/Marketplace";
+import { LoginPage } from "./pages/Login";
+import { RegisterPage } from "./pages/Register";
 import { NotFoundPage } from "./pages/NotFound";
+
+/** Protected route: remembers where the user came from and returns after login. */
+function RequireAuth({ children }: { children: JSX.Element }) {
+  const status = useAuth((s) => s.status);
+  const location = useLocation();
+  if (status === "unknown" || status === "authenticating") return <Spinner />;
+  if (status !== "authenticated") return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  return children;
+}
 
 export default function App() {
   const theme = useSettings((s) => s.theme);
   const accent = useSettings((s) => s.accent);
+  const bootstrap = useAuth((s) => s.bootstrap);
+  const status = useAuth((s) => s.status);
+  const loadAll = useData((s) => s.loadAll);
+  const reset = useData((s) => s.reset);
 
   // Apply design tokens on load/change (also handles persisted rehydration).
   useEffect(() => {
     applyAppearance(theme, accent);
   }, [theme, accent]);
 
-  // Wire the <audio> element to the player store. Mounted once.
+  // Restore session once on startup (silent refresh handled by the API client).
+  useEffect(() => {
+    void bootstrap();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load server data when authenticated; drop it on logout.
+  useEffect(() => {
+    if (status === "authenticated") void loadAll();
+    if (status === "anonymous") reset();
+  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Wire the <audio> element to the player store. Mounted once —
+  // playback continues across page/route navigation.
   useAudioEngine();
 
   return (
     <>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route element={<AppLayout />}>
           <Route index element={<HomePage />} />
           <Route path="search" element={<SearchPage />} />
-          <Route path="library" element={<LibraryPage />} />
-          <Route path="favorites" element={<FavoritesPage />} />
-          <Route path="playlists" element={<PlaylistsPage />} />
-          <Route path="playlists/:id" element={<PlaylistDetailPage />} />
-          <Route path="profile" element={<ProfilePage />} />
+          <Route path="library" element={<RequireAuth><LibraryPage /></RequireAuth>} />
+          <Route path="favorites" element={<RequireAuth><FavoritesPage /></RequireAuth>} />
+          <Route path="playlists" element={<RequireAuth><PlaylistsPage /></RequireAuth>} />
+          <Route path="playlists/:id" element={<RequireAuth><PlaylistDetailPage /></RequireAuth>} />
+          <Route path="profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="subscriptions" element={<SubscriptionsPage />} />
-          <Route path="coins" element={<CoinsPage />} />
-          <Route path="marketplace" element={<MarketplacePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
       <PlayerBar />
+      <Toaster />
     </>
   );
 }

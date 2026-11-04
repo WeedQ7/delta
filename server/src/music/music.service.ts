@@ -5,7 +5,7 @@ const trackSelect = {
   id: true, title: true, durationSec: true, audioUrl: true, genre: true,
   license: true, coverSeed: true, playCount: true,
   artist: { select: { id: true, name: true } },
-  album: { select: { id: true, title: true, coverSeed: true } },
+  album: { select: { id: true, title: true, coverSeed: true, releaseYear: true } },
 };
 
 @Injectable()

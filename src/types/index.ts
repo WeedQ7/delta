@@ -13,6 +13,8 @@ export interface Track {
   url: string;
   /** deterministic seed used to render a generative cover */
   coverSeed: number;
+  /** real cover image URL from the backend, if available */
+  coverUrl?: string;
   genre: string;
   year: number;
 }
